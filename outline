@@ -1,0 +1,23 @@
+dataSet: Pandas: to_numpy
+tree: dataset, splitting function, classify/regression function, root, stopping criterion: 1)maxDepth, 2)minsplitvalue (to continue splitting), 3)minNodeSize, 4)minChange
+node: dataset(X,y) (number of values), alpha value (erech saf), featureSplitOn, splitValue, left, right, isLeaf?, depth?, classification/regression value (function or value)
+
+split(node)
+    scores = get_all_scores(node)
+    node.left, node.right = tempsplit()
+
+get_all_scores(NODE)
+    bestscore = self.alpha
+    tempscore = np.ones(num_features, thresholds)
+    for i in num_features
+        thresholds = get_thresholds[i]
+        for j in num_thresholds
+            left, right = tempsplit(threshold)
+            tempscore[i,j] = get_score(left, right)
+            if tempscore[i,j] < bestscore:
+                tempi = i
+                tempj = j
+
+     return tempscore, tempi, tempj
+
+get_thresholds, score,
