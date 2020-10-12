@@ -44,7 +44,7 @@ class DecisionsTree:
         if feature < 0 or feature >= self.data.shape[1]:
             raise Exception('feature index must be between zero and {dim}'.format(dim=(self.data.shape[1] - 1)))
         false_array = []
-        true_array =[]
+        true_array = []
         false_data = DataSet()
         true_data = DataSet()
         for row in self.data:
@@ -54,6 +54,23 @@ class DecisionsTree:
                 false_array.append(row)
         false_data.data = np.array(false_array)
         true_data.data = np.array(true_array)
-        false_data.__sortByColumns()
-        true_data.__sortByColumns()
+        false_data
+        true_data
         return false_data, true_data
+
+    def get_all_scores(self, node):
+        best_score = self.alpha
+        num_thresholds = node.data_set.shape[0]-1
+        num_features = node.data_set.shape[1]-1
+        temp_score = np.ones(num_thresholds, num_features)
+        
+        for i in num_features:
+            thresholds = node.data_set.getThresholds[i]
+            for j in num_thresholds:
+                left, right = self.question(i, thresholds[j])
+                temp_score[i, j] = self.scoring_func(left, right)  # todo write at least one scoring_func: entropy, gini
+                if temp_score[i, j] < best_score:
+                    tempi = i
+                    tempj = j
+
+        return temp_score, tempi, tempj

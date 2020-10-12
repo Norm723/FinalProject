@@ -1,9 +1,12 @@
+import numpy as np
+
+
 class Node:
-    def __init__(self, feature, threshold, data_set):
+    def __init__(self, feature, threshold, data_set, gini_score=0):
         self.feature = feature
         self.threshold = threshold
         self.data_set = data_set
-        self.gini_score = 0
+        self.gini_score = gini_score
         self.leftNode = None
         self.rightNode = None
 
@@ -21,6 +24,7 @@ class Node:
             return True
         else:
             return False
+
     def Print(self):
         print(self.data_set.data)
         print("Feature: {feature}".format(feature=self.feature))
@@ -33,3 +37,4 @@ class Node:
                 self.leftNode.Print()
             if self.rightNode is not None:
                 self.rightNode.Print()
+
