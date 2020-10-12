@@ -2,13 +2,13 @@ import numpy as np
 
 
 class Node:
-    def __init__(self, feature, threshold, data_set, gini_score=0):
-        self.feature = feature
-        self.threshold = threshold
-        self.data_set = data_set
-        self.gini_score = gini_score
+    def __init__(self, data_set, depth):
+        self.feature = 0
+        self.threshold = 0
         self.leftNode = None
         self.rightNode = None
+        self.depth = depth
+        self.data_set = data_set
 
     def Split(self):
         pass
