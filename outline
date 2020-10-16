@@ -7,3 +7,7 @@ split(node)
     node.left, node.right = tempsplit()
 
 get_thresholds, score,
+
+# todo important note need discretization before employing some scoring functions to build regression tree
+Variance reduction
+Introduced in CART,[6] variance reduction is often employed in cases where the target variable is continuous (regression tree), meaning that use of many other metrics would first require discretization before being applied
