@@ -98,16 +98,16 @@ class DecisionsTree:
         self.__buildTree(self.root)
 
     # returns the splits on the data set
-    def question(self, feature, threshold):
+    def question(self, node, feature, threshold):
         if not isinstance(feature, int):
             raise Exception("feature index must be an integer value.")
-        if feature < 0 or feature >= self.data.shape[1]:
-            raise Exception('feature index must be between zero and {dim}'.format(dim=(self.data.shape[1] - 1)))
+        if feature < 0 or feature >= node.data_set.shape[1]:
+            raise Exception('feature index must be between zero and {dim}'.format(dim=(node.data_set.shape[1] - 1)))
         false_array = []
         true_array = []
         false_data = DataSet()
         true_data = DataSet()
-        for row in self.data:
+        for row in node.data_set:
             if row[feature] < threshold:
                 true_array.append(row)
             else:
@@ -129,9 +129,10 @@ class DecisionsTree:
         temp_right = None
 
         for i in num_features:
+            # todo send Node
             thresholds = node.data_set.getThresholds[i]
             for j in num_thresholds:
-                left, right = self.question(i, thresholds[j])
+                left, right = self.question(node, i, thresholds[j])
                 temp_score[i, j], left_score, right_score = self.scoring_func(left,
                                                                               right)
                 if self.scoring_func == informationGain:
@@ -150,8 +151,43 @@ class DecisionsTree:
 
         return temp_score, temp_left, temp_right, temp_lscore, temp_rscore
 
-    def predict(self):
-        pass
+    def __getPrediction(self, row, node):
+        if node.IsLeaf:
+            return node.prediction
 
-    def classify(self):
-        pass
+        if row[node.feature] < node.threshold:
+            prediction = self.__getPrediction(row, node.leftNode)
+        else:
+            prediction = self.__getPrediction(row, node.rightNode)
+        return prediction
+
+    def __getClassification(self, row, node):
+        if node.IsLeaf:
+            return node.classify
+
+        if row[node.feature] < node.threshold:
+            classification = self.__getClassification(row, node.leftNode)
+        else:
+            classification = self.__getClassification(row, node.rightNode)
+        return classification
+
+    #get predictions for all rows in the dataset
+    def predict(self, data):
+        # todo for every datapoint in set move left right until reach leaf and then prediction value is mean of
+        #  dataset in the leaf
+        numRows = data.shape[0]
+        #creat an array of length of number of rows of data to store the prediction
+        predictions = np.zeros(numRows)
+        for row in range(numRows):
+            predictions[row] = self.__getPrediction(data[row], self.root) 
+        return predictions
+
+    def classify(self, data):
+        # todo for every datapoint in set move left right until reach leaf and then prediction value is mode of
+        #  dataset in the leaf
+        numRows = data.shape[0]
+        #creat an array of length of number of rows of data to store the prediction
+        classifications = np.zeros(numRows)
+        for row in range(numRows):
+           classifications[row] = self.__getClassification(data[row], self.root) 
+        return classifications

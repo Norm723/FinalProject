@@ -20,18 +20,28 @@ class Node:
     def SetRightNode(self, right_node):
         self.rightNode = right_node
 
-    def __IsLeaf(self):
+    def IsLeaf(self):
         if self.leftNode is None and self.rightNode is None:
             return True
         else:
             return False
+
+    def prediction(self):
+        ycol = np.shape(self.data_set)[1] - 1
+        data_set = self.data_set.transpose
+        return np.mean(data_set[ycol])
+
+    def classify(self):
+        ycol = np.shape(self.data_set)[1] - 1
+        data_set = self.data_set.transpose
+        return np.argmax(data_set[ycol])
 
     def Print(self):
         print(self.data_set.data)
         print("Feature: {feature}".format(feature=self.feature))
         print("Threshold: {threshold}".format(threshold=self.threshold))
         print("\n")
-        if self.__IsLeaf():
+        if self.IsLeaf():
             return
         else:
             if self.leftNode is not None:
