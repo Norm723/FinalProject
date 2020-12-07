@@ -17,7 +17,7 @@ class DataSet:
             self.data = pd.read_csv(file_path)
             self.data = self.data.to_numpy()
         else:
-            self.data = None
+            exit
 
     def getThresholds(self, index):
         temp = np.apply_over_axes(np.sort, axes=0, a=self.data)
@@ -25,6 +25,13 @@ class DataSet:
         temp = temp[index]
         temp = np.unique(temp)
         return getMeans(temp)
+
+    def getAllThresholds(self):
+        len = self.data.shape[1] - 1
+        threshes = list()
+        for i in range(len):
+            threshes.append(self.getThresholds(i))
+        return threshes
 
     def printData(self):
         print(self.data)
