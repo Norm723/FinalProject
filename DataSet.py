@@ -17,6 +17,7 @@ class DataSet:
             # automatically removes first row
             self.data = pd.read_csv(file_path)
             self.data = self.data.to_numpy()
+            self.data = np.random.permutation(self.data)
         else:
             exit
 
@@ -44,3 +45,6 @@ class DataSet:
 
     def printData(self):
         print(self.data)
+
+    def getData(self):
+        return self.data
