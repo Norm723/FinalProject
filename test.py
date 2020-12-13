@@ -2,6 +2,10 @@ import pandas as pd
 import numpy as np
 import os
 import DataSet
+import DecisionsTree
+from sklearn import datasets
+import sklearn.model_selection as model_selection
+import math
 
 
 # giniImpurity(temp)
@@ -24,6 +28,24 @@ import DataSet
 # temp2 = DataSet.getMeans(temp2)
 # print(temp2)
 
-ds = DataSet.DataSet("C:\\Users\\normt\\Desktop\\testData.csv")
+# iris = datasets.load_iris()
+ds = DataSet.DataSet('C:\\Users\\normt\\AppData\\Local\\Programs\\Python\\Python37-32\\lib\\site-packages\\sklearn\\datasets\\data\\iris.csv')
 f = ds.getAllThresholds()
-print(f[0][0][0])
+# [row/vector][pair in vector][0 = thresh, 1 = pheromones]
+print(f[0][33][0])
+print(ds.data[:, 4])
+rows = ds.data.shape[0]
+trainsize = math.floor(rows*0.66)
+train = DataSet.DataSet()
+train.data = ds.data[0:math.floor(rows*0.66)]
+test = DataSet.DataSet()
+test.data = ds.data[math.ceil(rows*0.66): rows]
+# train, test, ty1,ty2 = model_selection.train_test_split(ds.data, test_size = 0.4, stratify = ds.data[4], random_state = 42)
+tree = DecisionsTree.DecisionsTree(train)
+tree.buildTree()
+tree.printTree()
+temp = tree.classify(test)
+print(temp)
+print(temp[:] != ds.data[math.ceil(rows*0.66): rows, 4])
+print(np.sum(temp[:] != ds.data[math.ceil(rows*0.66): rows, 4]))
+print((1-np.sum(temp[:] != ds.data[math.ceil(rows*0.66): rows, 4])/(rows-math.floor(rows*0.66)))*100)
