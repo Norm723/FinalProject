@@ -27,14 +27,19 @@ class Node:
             return False
 
     def prediction(self):
-        ycol = np.shape(self.data_set)[1] - 1
-        data_set = self.data_set.transpose
+        ycol = self.data_set.data.shape[1] - 1
+        data_set = self.data_set.data.transpose()
         return np.mean(data_set[ycol])
 
     def classify(self):
-        ycol = np.shape(self.data_set)[1] - 1
-        data_set = self.data_set.transpose
-        return np.argmax(data_set[ycol])
+        ycol = self.data_set.data.shape[1] - 1
+        data_set = self.data_set.data.transpose()
+        data_list = list()
+        len = data_set[ycol].size
+        for i in range(len):
+            data_list.append(data_set[ycol][i])
+        print(max(set(data_list), key=data_list.count))
+        return max(set(data_list), key=data_list.count)
 
     def Print(self):
         print(self.data_set.data)
@@ -42,7 +47,9 @@ class Node:
         print("Threshold: {threshold}".format(threshold=self.threshold))
         print("\n")
         if self.IsLeaf():
-            return
+            print("\n")
+            print(self.data_set.data.shape[0])
+            print(self.data_set.printData())
         else:
             if self.leftNode is not None:
                 self.leftNode.Print()
