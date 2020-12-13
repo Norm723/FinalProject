@@ -6,8 +6,8 @@ import math
 
 
 def getY(data_set):
-    ycol = np.shape(data_set)[1] - 1
-    data_set = data_set.transpose()
+    ycol = data_set.data.shape[1] - 1
+    data_set = data_set.data.transpose()
     return data_set[ycol]
 
 
@@ -27,7 +27,7 @@ def informationGainImpurity(data_set):
 
 def giniImpurity(data_set):
     classes, counts = getClassDivisions(data_set)
-    total = len(classes)
+    total = len(data_set.data)
     score = 1
     for count in counts:
         score -= (count / total) ** 2
@@ -37,8 +37,8 @@ def giniImpurity(data_set):
 def weighted_average(left, right, function):
     left_score = function(left)
     right_score = function(right)
-    num_left = np.shape(left)[0]
-    num_right = np.shape(right)[0]
+    num_left = left.data.shape[0]
+    num_right = right.data.shape[0]
     total = num_left + num_right
     weighted_avg = left_score * (num_left / total) + right_score * (num_right / total)
     return weighted_avg, left_score, right_score
@@ -75,7 +75,7 @@ def rss(left, right):
 
 
 class DecisionsTree:
-    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=20, alpha=1, min_data_points=5, min_change=0.1):
+    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=20, alpha=1, min_data_points=5, min_change=0.001):
         self.root = Node(data_set, 0)
         self.scoring_func = scoring_func
         self.max_depth = max_depth  # max depth to keep splitting until
@@ -89,8 +89,8 @@ class DecisionsTree:
 
         scores, left, right, sl, sr = self.get_all_scores(node)
         if left is not None:
-            node.left = Node(left, node.depth + 1, sl)
-            node.right = Node(right, node.depth + 1, sr)
+            node.leftNode = Node(left, node.depth + 1, sl)
+            node.rightNode = Node(right, node.depth + 1, sr)
             self.__buildTree(node.leftNode)
             self.__buildTree(node.rightNode)
 
@@ -101,43 +101,46 @@ class DecisionsTree:
     def question(self, node, feature, threshold):
         if not isinstance(feature, int):
             raise Exception("feature index must be an integer value.")
-        if feature < 0 or feature >= node.data_set.shape[1]:
+        if feature < 0 or feature >= node.data_set.data.shape[1]:
             raise Exception('feature index must be between zero and {dim}'.format(dim=(node.data_set.shape[1] - 1)))
         false_array = []
         true_array = []
         false_data = DataSet()
         true_data = DataSet()
-        for row in node.data_set:
+        for row in node.data_set.data:
             if row[feature] < threshold:
-                true_array.append(row)
-            else:
                 false_array.append(row)
-        if false_data.data.shape[0] < self.min_data_points or true_data.data.shape[0] < self.min_data_points:
-            return None, None
+            else:
+                true_array.append(row)
         false_data.data = np.array(false_array)
         true_data.data = np.array(true_array)
+        if false_data.data.shape[0] < self.min_data_points or true_data.data.shape[0] < self.min_data_points:
+            return None, None
         return false_data, true_data
 
     # returns the score for every possible split on each feature and threshold, and the left and right datasets of
     # the best split
     def get_all_scores(self, node):
         best_score = self.alpha
-        num_thresholds = node.data_set.shape[0] - 1
-        num_features = node.data_set.shape[1] - 1
-        temp_score = np.ones(num_thresholds, num_features)
+        num_thresholds = node.data_set.data.shape[0] - 1
+        num_features = node.data_set.data.shape[1] - 1
+        temp_score = np.ones(shape=(num_features, num_thresholds))
         temp_left = None
         temp_right = None
 
-        for i in num_features:
+        for i in range(num_features):
             # todo send Node
-            thresholds = node.data_set.getThresholds[i]
-            for j in num_thresholds:
+            thresholds = node.data_set.getThresholds(i)
+            num_thresholds = thresholds.shape[0] - 1
+            for j in range(num_thresholds):
                 left, right = self.question(node, i, thresholds[j])
+                if left == None or right == None:
+                    continue
                 temp_score[i, j], left_score, right_score = self.scoring_func(left,
                                                                               right)
                 if self.scoring_func == informationGain:
                     temp_score[i, j] = node.score - temp_score[i, j]
-                if left < self.min_data_points or right < self.min_data_points:
+                if left.data.shape[0] < self.min_data_points or right.data.shape[0] < self.min_data_points:
                     temp_score[i, j] = math.inf  # don't want it to be selected
                 if temp_score[i, j] < best_score:
                     best_score = temp_score[i, j]
@@ -145,15 +148,22 @@ class DecisionsTree:
                     temp_right = right
                     temp_lscore = left_score
                     temp_rscore = right_score
-                if best_score > self.alpha or best_score >= node.score:
-                    temp_left = None
-                    temp_right = None
-
+                    temp_thresh = thresholds[j]
+                    temp_feat = i
+        if best_score > self.alpha or best_score >= node.score:
+            temp_left = None
+            temp_right = None
+            temp_lscore = 1
+            temp_rscore = 1
+            temp_thresh = 0
+            temp_feat = 0
+        node.threshold = temp_thresh
+        node.feature = temp_feat
         return temp_score, temp_left, temp_right, temp_lscore, temp_rscore
 
     def __getPrediction(self, row, node):
-        if node.IsLeaf:
-            return node.prediction
+        if node.IsLeaf():
+            return node.prediction()
 
         if row[node.feature] < node.threshold:
             prediction = self.__getPrediction(row, node.leftNode)
@@ -162,8 +172,8 @@ class DecisionsTree:
         return prediction
 
     def __getClassification(self, row, node):
-        if node.IsLeaf:
-            return node.classify
+        if node.IsLeaf():
+            return node.classify()
 
         if row[node.feature] < node.threshold:
             classification = self.__getClassification(row, node.leftNode)
@@ -172,22 +182,25 @@ class DecisionsTree:
         return classification
 
     #get predictions for all rows in the dataset
-    def predict(self, data):
+    def predict(self, dataset):
         # todo for every datapoint in set move left right until reach leaf and then prediction value is mean of
         #  dataset in the leaf
-        numRows = data.shape[0]
+        numRows = dataset.data.shape[0]
         #creat an array of length of number of rows of data to store the prediction
         predictions = np.zeros(numRows)
         for row in range(numRows):
-            predictions[row] = self.__getPrediction(data[row], self.root) 
+            predictions[row] = self.__getPrediction(dataset.data[row], self.root) 
         return predictions
 
-    def classify(self, data):
+    def classify(self, dataset):
         # todo for every datapoint in set move left right until reach leaf and then prediction value is mode of
         #  dataset in the leaf
-        numRows = data.shape[0]
+        numRows = dataset.data.shape[0]
         #creat an array of length of number of rows of data to store the prediction
         classifications = np.zeros(numRows)
         for row in range(numRows):
-           classifications[row] = self.__getClassification(data[row], self.root) 
+           classifications[row] = self.__getClassification(dataset.data[row], self.root) 
         return classifications
+
+    def printTree(self):
+        self.root.Print()
