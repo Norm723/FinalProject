@@ -38,7 +38,6 @@ class Node:
         len = data_set[ycol].size
         for i in range(len):
             data_list.append(data_set[ycol][i])
-        print(max(set(data_list), key=data_list.count))
         return max(set(data_list), key=data_list.count)
 
     def Print(self):

@@ -16,12 +16,13 @@ def getClassDivisions(data_set):
     return np.unique(temp, return_counts=True)
 
 
-def informationGainImpurity(data_set):
+def entropy(data_set):
     classes, counts = getClassDivisions(data_set)
-    total = len(classes)
+    total = len(data_set.data)
     score = 0
     for count in counts:
-        score += (count / total) * math.log2(count / total)
+        p = count / total
+        score += (p) * math.log2(p)
     return -score
 
 
@@ -40,12 +41,14 @@ def weighted_average(left, right, function):
     num_left = left.data.shape[0]
     num_right = right.data.shape[0]
     total = num_left + num_right
-    weighted_avg = left_score * (num_left / total) + right_score * (num_right / total)
+    left_avg = (left_score * (num_left / total))
+    right_avg = (right_score * (num_right / total))
+    weighted_avg =  left_avg + right_avg
     return weighted_avg, left_score, right_score
 
 
 def informationGain(left, right):
-    return weighted_average(left, right, informationGainImpurity)
+    return weighted_average(left, right, entropy)
 
 
 def score_by_gini(left, right):
@@ -82,6 +85,7 @@ class DecisionsTree:
         self.alpha = alpha  # min best score to split on
         self.min_data_points = min_data_points  # min data points a node can contain
         self.min_change = min_change  # todo figure out or leave out
+        self.max = True if self.scoring_func == informationGain else False
 
     def __buildTree(self, node):
         if node.depth >= self.max_depth:
@@ -95,6 +99,8 @@ class DecisionsTree:
             self.__buildTree(node.rightNode)
 
     def buildTree(self):
+        if self.scoring_func == informationGain:
+            self.root.score = entropy(self.root.data_set)
         self.__buildTree(self.root)
 
     # returns the splits on the data set
@@ -134,15 +140,15 @@ class DecisionsTree:
             num_thresholds = thresholds.shape[0] - 1
             for j in range(num_thresholds):
                 left, right = self.question(node, i, thresholds[j])
-                if left == None or right == None:
+                if left == None or right == None:                    
                     continue
                 temp_score[i, j], left_score, right_score = self.scoring_func(left,
                                                                               right)
                 if self.scoring_func == informationGain:
                     temp_score[i, j] = node.score - temp_score[i, j]
                 if left.data.shape[0] < self.min_data_points or right.data.shape[0] < self.min_data_points:
-                    temp_score[i, j] = math.inf  # don't want it to be selected
-                if temp_score[i, j] < best_score:
+                    temp_score[i, j] = -math.inf if self.max else math.inf   # don't want it to be selected
+                if not self.max and temp_score[i, j] < best_score or self.max and temp_score[i, j] > best_score:
                     best_score = temp_score[i, j]
                     temp_left = left
                     temp_right = right
@@ -150,7 +156,7 @@ class DecisionsTree:
                     temp_rscore = right_score
                     temp_thresh = thresholds[j]
                     temp_feat = i
-        if best_score > self.alpha or best_score >= node.score:
+        if (not self.max and best_score > self.alpha) or (not self.max and best_score >= node.score) or (self.max and best_score <= self.alpha) or (self.max and best_score <= self.min_change):
             temp_left = None
             temp_right = None
             temp_lscore = 1
