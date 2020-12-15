@@ -18,6 +18,8 @@ class DataSet:
             self.data = pd.read_csv(file_path)
             self.data = self.data.to_numpy()
             self.data = np.random.permutation(self.data)
+            if self.data.dtype == object:
+                self.data = self.data.astype('float64')
         else:
             exit
 

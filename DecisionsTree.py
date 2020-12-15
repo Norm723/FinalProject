@@ -59,8 +59,9 @@ def prediction(data_set):
     return np.mean(data_set)
 
 
-def sumSquared(data_set, predict):
+def sumSquared(data_set):
     res = 0
+    predict = prediction(data_set)
     for point in data_set:
         res += (point - predict) ** 2
     return res
@@ -69,10 +70,8 @@ def sumSquared(data_set, predict):
 def rss(left, right):
     left = getY(left)
     right = getY(right)
-    predLeft = prediction(left)
-    predRight = prediction(right)
-    rssL = sumSquared(left, predLeft)
-    rssR = sumSquared(right, predRight)
+    rssL = sumSquared(left)
+    rssR = sumSquared(right)
     return rssL + rssR, rssL, rssR
     # todo can rss score be considered the node score?
 
@@ -101,6 +100,8 @@ class DecisionsTree:
     def buildTree(self):
         if self.scoring_func == informationGain:
             self.root.score = entropy(self.root.data_set)
+        else:
+            self.root.score = math.inf
         self.__buildTree(self.root)
 
     # returns the splits on the data set
