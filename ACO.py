@@ -37,10 +37,10 @@ class ACO:
             #  self.pheromone[path[move]][move] += 1.0 / (score[currPath][move])**(self.dim/2) #by score
 
     def constructSolution(self):
-        temp_tree = self.tree
+        temp_tree = DecisionsTree.DecisionsTree(self.tree.root.data_set)
         current_edges = list()
-        current_edges.append(self.tree.root)
-        for i in range(self.tree.max_depth):
+        current_edges.append(temp_tree.root)
+        for i in range(temp_tree.max_depth):
             new_edges = list()
             for edgeNode in current_edges:
                 temp_score = temp_tree.get_all_scores(edgeNode)[0]
@@ -65,12 +65,19 @@ class ACO:
         return max(thresholds_length)
 
     def nextMove(self, node, scores):
-        temp_pheromones = np.zeros(shape=(len(self.pheromone.shape), self.getMaxThresholdsLength()))
-        threshold = node.data_set.getAllThresholds()
+        if scores is None:
+            return None, None
+        temp_pheromones = np.zeros(shape=(len(self.pheromone), self.getMaxThresholdsLength()))
+        thresholds = node.data_set.getAllThresholds()
+        for feature in range(len(thresholds)):
+            for thresh in range(len(thresholds[feature])):
+                for pheromone_thresh in range(len(self.pheromone[feature])):
+                    if thresholds[feature][thresh][0] == self.pheromone[feature][pheromone_thresh][0]:
+                        list(thresholds[feature][thresh])[1] = self.pheromone[feature][pheromone_thresh][1] 
 
         for feature in range(len(scores)):
             for threshold in range(len(scores[feature])):
-                temp_pheromones[feature][threshold] = (self.pheromone[feature][threshold][1] ** self.alpha) *\
+                temp_pheromones[feature][threshold] = (thresholds[feature][threshold][1] ** self.alpha) *\
                                                       (scores[feature][threshold] ** self.beta)
 
         linear_idx = np.random.choice(temp_pheromones.size, p=temp_pheromones.ravel() / float(temp_pheromones.sum()))
@@ -79,13 +86,12 @@ class ACO:
         # unravel/ravel doesn't work as expected
         #temp_pheromones /= temp_pheromones.sum()
         #feature, threshold = self.local_state.choice(shape=(temp_pheromones.shape[0], temp_pheromones.shape[1]), 1, p=temp_pheromones)[0]
-        threshold_value = threshold[feature_idx][threshold_idx]
+        threshold_value = thresholds[feature_idx][threshold_idx][0]
         left, right = self.tree.question(node, feature_idx.astype(int), threshold_value)
-        if left is None or right is None:
-            print("split got none")
-        node.score = scores[feature][threshold]
-        node.feature = feature
-        node.threshold = threshold
+
+        node.score = scores[feature_idx][threshold_idx]
+        node.feature = feature_idx
+        node.threshold = threshold_value
         if left is None or right is None:
             return None, None
         node.leftNode = Node(left, node.depth + 1, 0)

@@ -134,6 +134,7 @@ class DecisionsTree:
         temp_scores = list()
         temp_left = None
         temp_right = None
+        haveScore = False
 
         for i in range(num_features):
             # todo send Node
@@ -149,6 +150,7 @@ class DecisionsTree:
                     score = node.score - score
                 if left.data.shape[0] < self.min_data_points or right.data.shape[0] < self.min_data_points:
                     score = -math.inf if self.max else math.inf   # don't want it to be selected
+
                 if not self.max and score < best_score or self.max and score > best_score:
                     best_score = score
                     temp_left = left
@@ -157,6 +159,8 @@ class DecisionsTree:
                     temp_rscore = right_score
                     temp_thresh = thresholds[j]
                     temp_feat = i
+                if score != 0:
+                    haveScore = True
                 feature_scores.append(score)
             temp_scores.append(feature_scores)
         if (not self.max and best_score > self.alpha) or (not self.max and best_score >= node.score) or (self.max and best_score <= self.alpha) or (self.max and best_score <= self.min_change):
@@ -168,6 +172,8 @@ class DecisionsTree:
             temp_feat = 0
         node.threshold = temp_thresh
         node.feature = temp_feat
+        if not haveScore:
+            temp_scores = None
         return temp_scores, temp_left, temp_right, temp_lscore, temp_rscore
 
     def __getPrediction(self, row, node):
