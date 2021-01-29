@@ -217,5 +217,11 @@ class DecisionsTree:
            classifications[row] = self.__getClassification(dataset.data[row], self.root) 
         return classifications
 
+    def classifyOrPredict(self, dataset):
+        if self.scoring_func == rss:
+            return self.predict(dataset)
+        else:
+            return self.classify(dataset)
+
     def printTree(self):
         self.root.Print()

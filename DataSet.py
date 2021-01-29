@@ -41,7 +41,10 @@ class DataSet:
             temp = self.getThresholds(i)
             temp_tuples = list()
             for j in range(temp.size):
-                temp_tuples.append((temp[j], 1))
+                templist = list()
+                templist.append(temp[j])
+                templist.append(1)
+                temp_tuples.append(templist)
             threshes.append(temp_tuples)
         return threshes
 

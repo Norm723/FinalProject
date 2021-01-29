@@ -5,9 +5,10 @@ import DecisionsTree
 
 
 class ACO:
-    def __init__(self, dec_tree, data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=1, seed=None):
+    def __init__(self, dec_tree, data_set, testing_data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=1, seed=None):
         self.tree = dec_tree
         self.data_set = data_set
+        self.testing_data_set = testing_data_set
         self.Nant = nant
         self.Niter = niter
         self.rho = rho
@@ -15,26 +16,56 @@ class ACO:
         self.beta = beta
         self.pheromone = data_set.getAllThresholds()
         self.local_state = np.random.RandomState(seed)
+        self.best_tree = None
+        self.best_tree_score = 0
 
     def run(self):  # TODO: implement best tree function
-        best_tree = None
         for i in range(self.Niter):
             trees = self.constructTrees()
             self.depositPheromones(trees)
-            temp_best_tree = get_best_tree(trees)
-            if best_tree < temp_best_tree:
-                best_tree = temp_best_tree
-            self.pheromone *= self.rho  # evaporation
-        return best_tree
+            temp_tree, temp_tree_score = self.getBestTree(trees)
+            if self.best_tree_score < temp_tree_score:
+                self.best_tree = temp_tree
+                self.best_tree_score = temp_tree_score
+            self.evaporation()  # evaporation call function if needed
+        print(self.best_tree_score)
+        return self.best_tree
+    
+    def getBestTree(self, trees):
+        best_tree = None
+        best_result = 0
+        last_column = len(self.testing_data_set.data[0]) -1
+        for tree in trees:
+            count = 0
+            result = tree.classifyOrPredict(self.testing_data_set)
+            for index in range(len(result)):
+                if result[index] == self.testing_data_set.data[index][last_column]:
+                    count += 1
+            percent_correct = 100*(count/len(result))
+            if percent_correct > best_result:
+                best_result = percent_correct
+                best_tree = tree
+        return best_tree, best_result
+
+    def evaporation(self):
+        for feature in range(len(self.pheromone)):
+            for threshold in range(len(self.pheromone[feature])):
+                self.pheromone[feature][threshold][1] *= self.rho  # evaporation
 
     def depositPheromones(self, trees):
-
         for tree in trees:
-            for node in tree:
-                #  TODO: implement iterative function there goes over all nodes in tree
-                #  pseudo code
-                self.pheromone[node.feature][node.threshold][1] += node.score
-            #  self.pheromone[path[move]][move] += 1.0 / (score[currPath][move])**(self.dim/2) #by score
+            self._depositPheromones(tree.root)
+
+    def _depositPheromones(self, node):
+        score = node.score if self.tree.max else 1/(node.score+1)
+        feature = node.feature
+        for index in range(len(self.pheromone[feature])):
+            if self.pheromone[feature][index][0] == node.threshold:
+                self.pheromone[feature][index][1] += score
+                break
+        if node.leftNode:
+            self._depositPheromones(node.leftNode)
+            self._depositPheromones(node.rightNode)
 
     def constructSolution(self):
         temp_tree = DecisionsTree.DecisionsTree(self.tree.root.data_set)
@@ -73,7 +104,7 @@ class ACO:
             for thresh in range(len(thresholds[feature])):
                 for pheromone_thresh in range(len(self.pheromone[feature])):
                     if thresholds[feature][thresh][0] == self.pheromone[feature][pheromone_thresh][0]:
-                        list(thresholds[feature][thresh])[1] = self.pheromone[feature][pheromone_thresh][1] 
+                        thresholds[feature][thresh][1] = self.pheromone[feature][pheromone_thresh][1] 
 
         for feature in range(len(scores)):
             for threshold in range(len(scores[feature])):
