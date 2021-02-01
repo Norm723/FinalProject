@@ -1,28 +1,28 @@
 import numpy as np
-
+import math
 from DataSet import DataSet
 from Node import Node
-import math
 
 
-def getY(data_set):
-    ycol = data_set.data.shape[1] - 1
+def getYValues(data_set):
+    y_values_vec = data_set.data.shape[1] - 1
     data_set = data_set.data.transpose()
-    return data_set[ycol]
+    return data_set[y_values_vec]
 
 
+# returns the divisions, and the number of samples in each division
 def getClassDivisions(data_set):
-    temp = getY(data_set)
-    return np.unique(temp, return_counts=True)
+    y_values_vec = getYValues(data_set)
+    return np.unique(y_values_vec, return_counts=True)
 
 
 def entropy(data_set):
     classes, counts = getClassDivisions(data_set)
-    total = len(data_set.data)
+    num_samples = len(data_set.data)
     score = 0
     for count in counts:
-        p = count / total
-        score += (p) * math.log2(p)
+        p = count / num_samples
+        score += p * math.log2(p)
     return -score
 
 
@@ -43,7 +43,7 @@ def weighted_average(left, right, function):
     total = num_left + num_right
     left_avg = (left_score * (num_left / total))
     right_avg = (right_score * (num_right / total))
-    weighted_avg =  left_avg + right_avg
+    weighted_avg = left_avg + right_avg
     return weighted_avg, left_score, right_score
 
 
@@ -68,8 +68,8 @@ def sumSquared(data_set):
 
 
 def rss(left, right):
-    left = getY(left)
-    right = getY(right)
+    left = getYValues(left)
+    right = getYValues(right)
     rssL = sumSquared(left)
     rssR = sumSquared(right)
     return rssL + rssR, rssL, rssR

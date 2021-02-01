@@ -68,7 +68,7 @@ class ACO:
             self._depositPheromones(node.rightNode)
 
     def constructSolution(self):
-        temp_tree = DecisionsTree.DecisionsTree(self.tree.root.data_set)
+        temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
         current_edges = list()
         current_edges.append(temp_tree.root)
         for i in range(temp_tree.max_depth):
