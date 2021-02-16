@@ -1,12 +1,13 @@
 import numpy as np
-import DataSet
 from Node import Node
+import DecisionsTree
 
 
 class ACO:
-    def __init__(self, dec_tree, data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=10, seed=None):
+    def __init__(self, dec_tree, data_set, testing_data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=1, seed=None):
         self.tree = dec_tree
         self.data_set = data_set
+        self.testing_data_set = testing_data_set
         self.Nant = nant
         self.Niter = niter
         self.rho = rho
@@ -14,80 +15,116 @@ class ACO:
         self.beta = beta
         self.pheromone = data_set.getAllThresholds()
         self.local_state = np.random.RandomState(seed)
+        self.best_tree = None
+        self.best_tree_score = 0
 
-    def run(self):
-        best_tree = None
-        best_path = ("TBD", np.inf)
+    def run(self):  # TODO: implement best tree function
         for i in range(self.Niter):
-            contradictions = np.zeros((self.Nant, self.dim))
-            all_paths = self.constructColonyPaths(contradictions)
-            self.depositPheronomes(all_paths, contradictions)
-            best_placement = min(all_paths, key=lambda x: x[1])
-            print(i+1, ": ", best_placement[1])
-            if best_placement[1] < best_path[1]:
-                best_path = best_placement
-            self.pheromone *= self.rho  #evaporation
-        return best_path
-
-        """
-        This method deposits pheromones on the edges.
-        Importantly, unlike the lecture's version, this ACO selects only 1/4 of the top tours - and updates only their edges, 
-        in a slightly different manner than presented in the lecture.
-        """
-    def depositPheronomes(self, all_paths, contradictions):
-        #sorted_paths = sorted(all_paths, key=lambda x: x[1])
-        #Nsel = int(self.Nant/4) # Proportion of updated paths
-        currPath = 0
-        #for path, fitVal in sorted_paths[:Nsel]:
-        for path, fitVal in all_paths:
-            for move in range(self.dim):
-                self.pheromone[path[move]][move] += 1.0 / (score[currPath][move])**(self.dim/2) #by score
-            currPath += 1
-
-        """
-        This method generates a single Hamiltonian tour per an ant, starting from node 'start'
-        The output, 'path', is a list of edges, each represented by a pair of nodes.
-        """
-    def constructSolution(self, ant, contradictions):
-        path = []
-        for i in range(self.dim):
-            path = self.nextMove(self.pheromone[:][i], path, ant, contradictions)
-        return path, self.evalTour(path, contradictions[ant])
-        """
-        This method generates 'Nant' paths, for the entire colony, representing a single iteration.
-        """
-    def constructColonyPaths(self, contradictions):
-        all_paths = []
-        for i in range(self.Nant):
-            path, value = self.constructSolution(i, contradictions)
-            #constructing pairs: first is the tour, second is its length
-            all_paths.append((path, value))
-        return all_paths
+            trees = self.constructTrees()
+            self.depositPheromones(trees)
+            temp_tree, temp_tree_score = self.getBestTree(trees)
+            if self.best_tree_score < temp_tree_score:
+                self.best_tree = temp_tree
+                self.best_tree_score = temp_tree_score
+            self.evaporation()  # evaporation call function if needed
+        print(self.best_tree_score)
+        return self.best_tree
     
-        """
-        This method probabilistically calculates the next move (node) given a neighboring 
-        information per a single ant at a specified node.
-        Importantly, 'pheromone' is a specific row out of the original matrix, representing the neighbors of the current node.
-        Similarly, 'dist' is the row out of the original graph, associated with the neighbors of the current node.
-        'visited' is a set of nodes - whose probability weights are constructed as zeros, to eliminate revisits.
-        The random generation relies on norm_row, as a vector of probabilities, using the numpy function 'choice'
-        """
-    def nextMove(self, pheromone, path, ant,contradictions):
-        colContr = self.getContradictions(path) #for column k, return pair(num contradictions, vector of with whom contradiction)
-        row = pheromone ** self.alpha * ((1.0 / (colContr+1)) ** self.beta)
-        norm_row = row / row.sum()
-        dims = range(self.dim)
-        move = self.local_state.choice(dims, 1, p=norm_row)[0]
-        #changes to path and self.contradictions
-        path.append(move)
-        if colContr[move] != 0:
-            contradictions[ant][len(path)-1] += 1
-        for j in range((len(path)-1)): #j = column of path[j], path[j] = row of this element
-            if path[j] == move:
-                contradictions[ant][j] += 1
-            if path[j] + j == len(path) - 1 + move:
-                contradictions[ant][j] += 1
-            if path[j] - j == move - (len(path) - 1):
-                contradictions[ant][j] += 1
-        return path
+    def getBestTree(self, trees):
+        best_tree = None
+        best_result = 0
+        last_column = len(self.testing_data_set.data[0]) -1
+        for tree in trees:
+            count = 0
+            result = tree.classifyOrPredict(self.testing_data_set)
+            for index in range(len(result)):
+                if result[index] == self.testing_data_set.data[index][last_column]:
+                    count += 1
+            percent_correct = 100*(count/len(result))
+            if percent_correct > best_result:
+                best_result = percent_correct
+                best_tree = tree
+        return best_tree, best_result
+
+    def evaporation(self):
+        for feature in range(len(self.pheromone)):
+            for threshold in range(len(self.pheromone[feature])):
+                self.pheromone[feature][threshold][1] *= self.rho  # evaporation
+
+    def depositPheromones(self, trees):
+        for tree in trees:
+            self._depositPheromones(tree.root)
+
+    def _depositPheromones(self, node):
+        score = node.score if self.tree.max else 1/(node.score+1)
+        feature = node.feature
+        for index in range(len(self.pheromone[feature])):
+            if self.pheromone[feature][index][0] == node.threshold:
+                self.pheromone[feature][index][1] += score
+                break
+        if node.leftNode:
+            self._depositPheromones(node.leftNode)
+            self._depositPheromones(node.rightNode)
+
+    def constructSolution(self):
+        temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
+        current_edges = list()
+        current_edges.append(temp_tree.root)
+        for i in range(temp_tree.max_depth):
+            new_edges = list()
+            for edgeNode in current_edges:
+                temp_score = temp_tree.get_all_scores(edgeNode)[0]
+                left, right = self.nextMove(edgeNode, temp_score)
+                if left is not None and right is not None:
+                    new_edges.append(left)
+                    new_edges.append(right)
+            current_edges = new_edges
+        return temp_tree
+
+    def constructTrees(self):
+        all_trees = list()
+        for i in range(self.Nant):
+            tree = self.constructSolution()
+            all_trees.append(tree)
+        return all_trees
+
+    def getMaxThresholdsLength(self):
+        thresholds_length = list()
+        for thresholds in range(len(self.pheromone)):
+            thresholds_length.append(len(self.pheromone[thresholds]))
+        return max(thresholds_length)
+
+    def nextMove(self, node, scores):
+        if scores is None:
+            return None, None
+        temp_pheromones = np.zeros(shape=(len(self.pheromone), self.getMaxThresholdsLength()))
+        thresholds = node.data_set.getAllThresholds()
+        for feature in range(len(thresholds)):
+            for thresh in range(len(thresholds[feature])):
+                for pheromone_thresh in range(len(self.pheromone[feature])):
+                    if thresholds[feature][thresh][0] == self.pheromone[feature][pheromone_thresh][0]:
+                        thresholds[feature][thresh][1] = self.pheromone[feature][pheromone_thresh][1] 
+
+        for feature in range(len(scores)):
+            for threshold in range(len(scores[feature])):
+                temp_pheromones[feature][threshold] = (thresholds[feature][threshold][1] ** self.alpha) *\
+                                                      (scores[feature][threshold] ** self.beta)
+
+        linear_idx = np.random.choice(temp_pheromones.size, p=temp_pheromones.ravel() / float(temp_pheromones.sum()))
+
+        feature_idx, threshold_idx = np.unravel_index(linear_idx, temp_pheromones.shape)
+        # unravel/ravel doesn't work as expected
+        #temp_pheromones /= temp_pheromones.sum()
+        #feature, threshold = self.local_state.choice(shape=(temp_pheromones.shape[0], temp_pheromones.shape[1]), 1, p=temp_pheromones)[0]
+        threshold_value = thresholds[feature_idx][threshold_idx][0]
+        left, right = self.tree.question(node, feature_idx.astype(int), threshold_value)
+
+        node.score = scores[feature_idx][threshold_idx]
+        node.feature = feature_idx
+        node.threshold = threshold_value
+        if left is None or right is None:
+            return None, None
+        node.leftNode = Node(left, node.depth + 1, 0)
+        node.rightNode = Node(right, node.depth + 1, 0)
+        return node.leftNode, node.rightNode
 

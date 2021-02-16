@@ -11,9 +11,6 @@ class Node:
         self.data_set = data_set
         self.score = score
 
-    def Split(self):
-        pass
-
     def SetLeftNode(self, left_node):
         self.leftNode = left_node
 
@@ -27,17 +24,17 @@ class Node:
             return False
 
     def prediction(self):
-        ycol = self.data_set.data.shape[1] - 1
+        y_values_vector = self.data_set.data.shape[1] - 1
         data_set = self.data_set.data.transpose()
-        return np.mean(data_set[ycol])
+        return np.mean(data_set[y_values_vector])
 
     def classify(self):
-        ycol = self.data_set.data.shape[1] - 1
+        y_values_vector = self.data_set.data.shape[1] - 1
         data_set = self.data_set.data.transpose()
         data_list = list()
-        len = data_set[ycol].size
+        len = data_set[y_values_vector].size
         for i in range(len):
-            data_list.append(data_set[ycol][i])
+            data_list.append(data_set[y_values_vector][i])
         return max(set(data_list), key=data_list.count)
 
     def Print(self):
