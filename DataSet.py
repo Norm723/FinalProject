@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 # get means of every two so resulting length is one less than given vector length
 def getMeans(row_vector):
@@ -50,3 +51,11 @@ class DataSet:
 
     def printData(self):
         print(self.data)
+
+    def splitIntoTrainingTest(self):
+        rows = self.data.shape[0]
+        train = DataSet()
+        train.data = self.data[0:math.floor(rows*0.66)]
+        test = DataSet()
+        test.data = self.data[math.ceil(rows*0.66): rows]
+        return train, test

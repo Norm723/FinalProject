@@ -34,13 +34,14 @@ ds = DataSet.DataSet('wine_data.csv')
 # [row/vector][pair in vector][0 = thresh, 1 = pheromones]
 # print(f[0][33][0])
 # print(ds.data[:, 4])
-rows = ds.data.shape[0]
-last = ds.data.shape[1] -1
-trainsize = math.floor(rows*0.66)
-train = DataSet.DataSet()
-train.data = ds.data[0:math.floor(rows*0.66)]
-test = DataSet.DataSet()
-test.data = ds.data[math.ceil(rows*0.66): rows]
+# rows = ds.data.shape[0]
+# last = ds.data.shape[1] -1
+# trainsize = math.floor(rows*0.66)
+# train = DataSet.DataSet()
+# train.data = ds.data[0:math.floor(rows*0.66)]
+# test = DataSet.DataSet()
+# test.data = ds.data[math.ceil(rows*0.66): rows]
+train, test = ds.splitIntoTrainingTest()
 # train, test, ty1,ty2 = model_selection.train_test_split(ds.data, test_size = 0.4, stratify = ds.data[4], random_state = 42)
 tree = DecisionsTree.DecisionsTree(train)
 # tree = DecisionsTree.DecisionsTree(train, scoring_func=DecisionsTree.informationGain, alpha=0)
