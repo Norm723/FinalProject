@@ -35,7 +35,7 @@ ds = DataSet.DataSet('wine_data.csv')
 # print(f[0][33][0])
 # print(ds.data[:, 4])
 # rows = ds.data.shape[0]
-# last = ds.data.shape[1] -1
+last = ds.data.shape[1] -1
 # trainsize = math.floor(rows*0.66)
 # train = DataSet.DataSet()
 # train.data = ds.data[0:math.floor(rows*0.66)]
@@ -51,6 +51,7 @@ tree.buildTree()
 # temp = tree.predict(test)
 # print(metrics.accuracy_score(test.data[:,last],temp))
 temp = tree.classify(test)
+
 print(temp)
 print(metrics.accuracy_score(test.data[:,last],temp))
 # mat = metrics.confusion_matrix(test.data[:,4],temp)
