@@ -1,5 +1,4 @@
 import numpy as np
-import DataSet
 from Node import Node
 import DecisionsTree
 

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-
+# get means of every two so resulting length is one less than given vector length
 def getMeans(row_vector):
     length = (len(row_vector) - 1)
     means = np.zeros(length)
@@ -15,6 +15,7 @@ class DataSet:
         if file_path is not None:
             # check if path is good
             # automatically removes first row
+            # but first row must be same length as other rows!!!!!!!!!
             self.data = pd.read_csv(file_path)
             self.data = self.data.to_numpy()
             # randomly change order of rows
