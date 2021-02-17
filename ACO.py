@@ -1,6 +1,7 @@
 import numpy as np
 from Node import Node
 import DecisionsTree
+from multiprocessing import Process, Queue
 
 
 class ACO:
@@ -18,15 +19,15 @@ class ACO:
         self.best_tree = None
         self.best_tree_score = 0
 
-    def run(self):  # TODO: implement best tree function
-        for i in range(self.Niter):
+    def run(self):
+        for _ in range(self.Niter):
             trees = self.constructTrees()
             self.depositPheromones(trees)
             temp_tree, temp_tree_score = self.getBestTree(trees)
             if self.best_tree_score < temp_tree_score:
                 self.best_tree = temp_tree
                 self.best_tree_score = temp_tree_score
-            self.evaporation()  # evaporation call function if needed
+            self.evaporation()
         print(self.best_tree_score)
         return self.best_tree
     
@@ -65,12 +66,14 @@ class ACO:
         if node.leftNode:
             self._depositPheromones(node.leftNode)
             self._depositPheromones(node.rightNode)
-
+    # FOR PARRELEL 
+    # def constructSolution(self, q):
+    # FOR NON-PARALLEL
     def constructSolution(self):
         temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
         current_edges = list()
         current_edges.append(temp_tree.root)
-        for i in range(temp_tree.max_depth):
+        for _ in range(temp_tree.max_depth):
             new_edges = list()
             for edgeNode in current_edges:
                 temp_score = temp_tree.get_all_scores(edgeNode)[0]
@@ -79,11 +82,29 @@ class ACO:
                     new_edges.append(left)
                     new_edges.append(right)
             current_edges = new_edges
+        # FOR PARRELEL    
+        # q.put(temp_tree)
+        # FOR NON-PARALLEL
         return temp_tree
 
     def constructTrees(self):
+        # FOR PARRELEL
+        # q = Queue()
+        # processes = []
+        # all_trees = list()
+        # for _ in range(self.Nant):
+        #     p = Process(target=self.constructSolution, args=(q, ))
+        #     processes.append(p)
+        #     p.start()
+        # for p in processes:
+        #     ret = q.get() # will block
+        #     all_trees.append(ret)
+        # for p in processes:
+        #     p.join()
+        # return all_trees
+        # FOR NON-PARALLEL
         all_trees = list()
-        for i in range(self.Nant):
+        for _ in range(self.Nant):
             tree = self.constructSolution()
             all_trees.append(tree)
         return all_trees

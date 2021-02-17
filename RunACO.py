@@ -8,7 +8,7 @@ import RandomForest
 def predictionAccuracy(predArray, testing_data_set, typeOfRun):
     count = 0
     last_column = len(testing_data_set.data[0]) -1
-    for index in range(len(predArray)-1):
+    for index in range(len(predArray)):
         if predArray[index] == testing_data_set.data[index][last_column]:
             count += 1
     percent_correct = 100*(count/len(predArray))
@@ -41,6 +41,8 @@ def main():
     print('')
 
     # for regular 
+    train = DataSet.DataSet('satTest.csv')
+    test = DataSet.DataSet('satTrain.csv')
     tree = DecisionsTree.DecisionsTree(train)
     tree.buildTree()
     temp = tree.classify(test)
@@ -49,7 +51,7 @@ def main():
     print('')
 
     # for random forest
-    rf = RandomForest.RandomForest('wine_data.csv', 5)
+    rf = RandomForest.RandomForest('wine_data.csv', 20)
     rf.buildTrees()
     temp = rf.classify(test)
     predictionAccuracy(temp, test, 'random forest')

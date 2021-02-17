@@ -15,7 +15,7 @@ class RandomForest:
     
     # function for building n trees and storing them in a list
     def buildTrees(self):
-        for i in range(self.num_trees):
+        for _ in range(self.num_trees):
             ds = DataSet.DataSet(self.data_file) 
             train, test = ds.splitIntoTrainingTest()
             tree = DecisionsTree.DecisionsTree(train, self.scoring_func, self.max_depth, self.alpha, self.min_data_points, self.min_change)
