@@ -15,12 +15,16 @@ def predictionAccuracy(predArray, testing_data_set, typeOfRun):
     print(typeOfRun, 'accuracy of tree: ', percent_correct)
 
 def main():
+    # set train and test data
+
     ds = DataSet.DataSet('wine_data.csv')
     train, test = ds.splitIntoTrainingTest()
+    # train = DataSet.DataSet('satTrain.csv')
+    # test = DataSet.DataSet('satTest.csv')
     
     # for aco
     tree = DecisionsTree.DecisionsTree(train)
-    ant_colony = ACO.ACO(tree, train, test, 20, 20)
+    ant_colony = ACO.ACO(tree, train, test, 10, 10)
     tree = ant_colony.run()
 
     with open('ACOTREE.pickle', 'wb') as handleTREE:
@@ -41,22 +45,22 @@ def main():
     print('')
 
     # for regular 
-    train = DataSet.DataSet('satTest.csv')
-    test = DataSet.DataSet('satTrain.csv')
-    tree = DecisionsTree.DecisionsTree(train)
-    tree.buildTree()
-    temp = tree.classify(test)
-    predictionAccuracy(temp, test, 'Regular')
-    print(temp[:])
-    print('')
+    # train = DataSet.DataSet('satTrain.csv')
+    # test = DataSet.DataSet('satTest.csv')
+    # tree = DecisionsTree.DecisionsTree(train)
+    # tree.buildTree()
+    # temp = tree.classify(test)
+    # predictionAccuracy(temp, test, 'Regular')
+    # print(temp[:])
+    # print('')
 
-    # for random forest
-    rf = RandomForest.RandomForest('wine_data.csv', 20)
-    rf.buildTrees()
-    temp = rf.classify(test)
-    predictionAccuracy(temp, test, 'random forest')
-    print(temp[:])
-    print('')
+    # # for random forest (send only training data)
+    # rf = RandomForest.RandomForest('satTrain.csv', 20)
+    # rf.buildTrees()
+    # temp = rf.classify(test)
+    # predictionAccuracy(temp, test, 'random forest')
+    # print(temp[:])
+    # print('')
 
 if __name__ == "__main__":
     main()
