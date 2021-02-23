@@ -20,7 +20,8 @@ class ACO:
         self.best_tree_score = 0
 
     def run(self):
-        for _ in range(self.Niter):
+        for i in range(self.Niter):
+            print('iteration: ', i)
             trees = self.constructTrees()
             self.depositPheromones(trees)
             temp_tree, temp_tree_score = self.getBestTree(trees)
@@ -35,17 +36,35 @@ class ACO:
         best_tree = None
         best_result = 0
         last_column = len(self.testing_data_set.data[0]) -1
-        for tree in trees:
-            count = 0
-            result = tree.classifyOrPredict(self.testing_data_set)
-            for index in range(len(result)):
-                if result[index] == self.testing_data_set.data[index][last_column]:
-                    count += 1
-            percent_correct = 100*(count/len(result))
+        # for parallel
+        q = Queue()
+        processes = [Process(target=tree.classifyParallel, args=(self.testing_data_set, tree, q)) for tree in trees]
+
+        for p in processes:
+            p.start()
+
+        results = [q.get() for _ in processes]
+
+        for p in processes:
+            p.join()
+        
+        for tree, results, percent_correct in results:
             if percent_correct > best_result:
                 best_result = percent_correct
                 best_tree = tree
         return best_tree, best_result
+        # for non-parallel
+        # for tree in trees:
+        #     count = 0
+        #     result = tree.classifyOrPredict(self.testing_data_set)
+        #     for index in range(len(result)):
+        #         if result[index] == self.testing_data_set.data[index][last_column]:
+        #             count += 1
+        #     percent_correct = 100*(count/len(result)) 
+        #     if percent_correct > best_result:
+        #         best_result = percent_correct
+        #         best_tree = tree
+        # return best_tree, best_result
 
     def evaporation(self):
         for feature in range(len(self.pheromone)):
@@ -66,10 +85,11 @@ class ACO:
         if node.leftNode:
             self._depositPheromones(node.leftNode)
             self._depositPheromones(node.rightNode)
+
     # FOR PARRELEL 
-    # def constructSolution(self, q):
+    def constructSolution(self, q):
     # FOR NON-PARALLEL
-    def constructSolution(self):
+    # def constructSolution(self):
         temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
         current_edges = list()
         current_edges.append(temp_tree.root)
@@ -83,31 +103,30 @@ class ACO:
                     new_edges.append(right)
             current_edges = new_edges
         # FOR PARRELEL    
-        # q.put(temp_tree)
+        q.put(temp_tree)
         # FOR NON-PARALLEL
-        return temp_tree
+        # return temp_tree
 
     def constructTrees(self):
         # FOR PARRELEL
-        # q = Queue()
-        # processes = []
+        q = Queue()
+        processes = [Process(target=self.constructSolution, args=(q, )) for _ in range(self.Nant)]
+
+        for p in processes:
+            p.start()
+
+        all_trees = [q.get() for _ in processes]
+
+        for p in processes:
+            p.join()
+        
+        return all_trees
+        # FOR NON-PARALLEL
         # all_trees = list()
         # for _ in range(self.Nant):
-        #     p = Process(target=self.constructSolution, args=(q, ))
-        #     processes.append(p)
-        #     p.start()
-        # for p in processes:
-        #     ret = q.get() # will block
-        #     all_trees.append(ret)
-        # for p in processes:
-        #     p.join()
-        # return all_trees
-        # FOR NON-PARALLEL
-        all_trees = list()
-        for _ in range(self.Nant):
-            tree = self.constructSolution()
-            all_trees.append(tree)
-        return all_trees
+        #     tree = self.constructSolution()
+        #     all_trees.append(tree)
+        # return all_tree
 
     def getMaxThresholdsLength(self):
         thresholds_length = list()

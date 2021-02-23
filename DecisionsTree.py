@@ -217,6 +217,22 @@ class DecisionsTree:
            classifications[row] = self.__getClassification(dataset.data[row], self.root) 
         return classifications
 
+    # parallel version of classification function
+    def classifyParallel(self, dataset, tree, q):
+        # todo for every datapoint in set move left right until reach leaf and then prediction value is mode of
+        #  dataset in the leaf
+        num_matched = 0
+        last_column = len(dataset.data[0]) -1
+        numRows = dataset.data.shape[0]
+        #creat an array of length of number of rows of data to store the prediction
+        classifications = np.zeros(numRows)
+        for row in range(numRows):
+            classifications[row] = self.__getClassification(dataset.data[row], self.root)
+            if classifications[row] == dataset.data[row][last_column]:
+                num_matched += 1
+        percent_correct = 100*(num_matched/numRows)
+        q.put((tree, classifications, percent_correct))
+
     def classifyOrPredict(self, dataset):
         if self.scoring_func == rss:
             return self.predict(dataset)
