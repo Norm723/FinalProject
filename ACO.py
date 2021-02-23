@@ -1,11 +1,11 @@
 import numpy as np
 from Node import Node
 import DecisionsTree
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Manager
 
 
 class ACO:
-    def __init__(self, dec_tree, data_set, testing_data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=1, seed=None):
+    def __init__(self, dec_tree, data_set, testing_data_set, nant=200, niter=500, rho=0.95, alpha=1, beta=5, seed=None):
         self.tree = dec_tree
         self.data_set = data_set
         self.testing_data_set = testing_data_set
@@ -37,18 +37,23 @@ class ACO:
         best_result = 0
         last_column = len(self.testing_data_set.data[0]) -1
         # for parallel
-        q = Queue()
+        # q = Queue()
+        mgr = Manager()
+        q = mgr.list()
         processes = [Process(target=tree.classifyParallel, args=(self.testing_data_set, tree, q)) for tree in trees]
 
         for p in processes:
             p.start()
 
-        results = [q.get() for _ in processes]
+        # results = [q.get() for _ in processes]
 
         for p in processes:
             p.join()
         
-        for tree, results, percent_correct in results:
+        for classify_results in q:
+            tree = classify_results[0]
+            percent_correct = classify_results[2]
+            print('getBest', percent_correct)
             if percent_correct > best_result:
                 best_result = percent_correct
                 best_tree = tree
@@ -61,6 +66,7 @@ class ACO:
         #         if result[index] == self.testing_data_set.data[index][last_column]:
         #             count += 1
         #     percent_correct = 100*(count/len(result)) 
+        #     print(percent_correct)
         #     if percent_correct > best_result:
         #         best_result = percent_correct
         #         best_tree = tree
@@ -103,30 +109,32 @@ class ACO:
                     new_edges.append(right)
             current_edges = new_edges
         # FOR PARRELEL    
-        q.put(temp_tree)
+        q.append(temp_tree)
         # FOR NON-PARALLEL
         # return temp_tree
 
     def constructTrees(self):
         # FOR PARRELEL
-        q = Queue()
-        processes = [Process(target=self.constructSolution, args=(q, )) for _ in range(self.Nant)]
+        # q = Queue()
+        mgr = Manager()
+        q = mgr.list()
+        processes = [Process(target=self.constructSolution, args=(q,)) for _ in range(self.Nant)]
 
         for p in processes:
             p.start()
 
-        all_trees = [q.get() for _ in processes]
+        # all_trees = [q.get() for _ in processes]
 
         for p in processes:
             p.join()
         
-        return all_trees
+        return q
         # FOR NON-PARALLEL
         # all_trees = list()
         # for _ in range(self.Nant):
         #     tree = self.constructSolution()
         #     all_trees.append(tree)
-        # return all_tree
+        # return all_trees
 
     def getMaxThresholdsLength(self):
         thresholds_length = list()

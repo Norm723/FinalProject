@@ -24,7 +24,7 @@ def main():
     
     # for aco
     tree = DecisionsTree.DecisionsTree(train)
-    ant_colony = ACO.ACO(tree, train, test, 10, 10)
+    ant_colony = ACO.ACO(tree, train, test, 10, 5)
     tree = ant_colony.run()
 
     with open('ACOTREE.pickle', 'wb') as handleTREE:

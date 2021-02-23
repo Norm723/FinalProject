@@ -231,7 +231,8 @@ class DecisionsTree:
             if classifications[row] == dataset.data[row][last_column]:
                 num_matched += 1
         percent_correct = 100*(num_matched/numRows)
-        q.put((tree, classifications, percent_correct))
+        print(percent_correct)
+        q.append((tree, classifications, percent_correct))
 
     def classifyOrPredict(self, dataset):
         if self.scoring_func == rss:
