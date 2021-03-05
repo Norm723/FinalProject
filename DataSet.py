@@ -4,7 +4,7 @@ import math
 
 # get means of every two so resulting length is one less than given vector length
 def getMeans(row_vector):
-    length = (len(row_vector) - 1)
+    length = len(row_vector)
     means = np.zeros(length)
     for i in range(length):
         means[i] = np.mean(row_vector[i:i + 2])
@@ -36,7 +36,7 @@ class DataSet:
     # returns all possible thresholds as a list of tuples with (value, 1)
     # 1 is starting pheromone value for ACO
     def getAllThresholds(self):
-        num_features = self.data.shape[1] - 1
+        num_features = self.data.shape[1]
         threshes = list()
         for i in range(num_features):
             feature_thresholds = self.getThresholds(i)
