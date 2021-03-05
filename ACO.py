@@ -93,10 +93,11 @@ class ACO:
             self._depositPheromones(node.rightNode)
 
     # FOR PARRELEL 
-    def constructSolution(self, q):
+    def constructSolution(self, q, tree):
     # FOR NON-PARALLEL
     # def constructSolution(self):
-        temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
+        # temp_tree = DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change)
+        temp_tree = tree
         current_edges = list()
         current_edges.append(temp_tree.root)
         for _ in range(temp_tree.max_depth):
@@ -108,7 +109,8 @@ class ACO:
                     new_edges.append(left)
                     new_edges.append(right)
             current_edges = new_edges
-        # FOR PARRELEL    
+        # FOR PARRELEL 
+        print(temp_tree)   
         q.append(temp_tree)
         # FOR NON-PARALLEL
         # return temp_tree
@@ -118,7 +120,10 @@ class ACO:
         # q = Queue()
         mgr = Manager()
         q = mgr.list()
-        processes = [Process(target=self.constructSolution, args=(q,)) for _ in range(self.Nant)]
+        tree_list = list()
+        for _ in range(self.Nant):
+            tree_list.append(DecisionsTree.DecisionsTree(self.data_set, self.tree.scoring_func, self.tree.max_depth, self.tree.alpha, self.tree.min_data_points, self.tree.min_change))
+        processes = [Process(target=self.constructSolution, args=(q,tree_list[i],)) for i in range(self.Nant)]
 
         for p in processes:
             p.start()
