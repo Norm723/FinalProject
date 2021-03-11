@@ -3,8 +3,8 @@ import DataSet
 import DecisionsTree
 
 class RandomForest:
-    def __init__(self, data_file, num_trees=1, scoring_func=DecisionsTree.score_by_gini, max_depth=20, alpha=1, min_data_pts=5, min_change=0.001):
-        self.data_file = data_file
+    def __init__(self, data_set, num_trees=1, scoring_func=DecisionsTree.score_by_gini, max_depth=20, alpha=1, min_data_pts=5, min_change=0.001):
+        self.data_set = data_set
         self.num_trees = num_trees
         self.trees = list()
         self.scoring_func = scoring_func
@@ -16,8 +16,8 @@ class RandomForest:
     # function for building n trees and storing them in a list
     def buildTrees(self):
         for _ in range(self.num_trees):
-            ds = DataSet.DataSet(self.data_file) 
-            train, test = ds.splitIntoTrainingTest()
+            # ds = DataSet.DataSet(self.data_file) 
+            train, test = self.data_set.splitIntoTrainingTest()
             tree = DecisionsTree.DecisionsTree(train, self.scoring_func, self.max_depth, self.alpha, self.min_data_points, self.min_change)
             tree.buildTree()
             self.trees.append(tree)

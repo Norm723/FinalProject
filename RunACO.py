@@ -3,6 +3,7 @@ import DataSet
 import DecisionsTree
 import pickle
 import RandomForest
+import numpy as np
 # from sklearn import datasets, metrics
 
 def predictionAccuracy(predArray, testing_data_set, typeOfRun):
@@ -23,39 +24,46 @@ def main():
     # test = DataSet.DataSet('satTest.csv')
     
     # for aco
-    tree = DecisionsTree.DecisionsTree(train)
-    ant_colony = ACO.ACO(tree, train, test, 10, 5)
-    tree = ant_colony.run()
-
-    with open('ACOTREE.pickle', 'wb') as handleTREE:
-        pickle.dump(tree, handleTREE, protocol=pickle.HIGHEST_PROTOCOL)
-
-    with open('ACOTEST.pickle', 'wb') as handleTEST:
-        pickle.dump(test, handleTEST, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    # with open('ACOTREE.pickle', 'rb') as handleTREE:
-    #     tree = pickle.load(handleTREE)
-
-    # with open('ACOTEST.pickle', 'rb') as handleTEST:
-    #     test = pickle.load(handleTEST)
-
-    results = tree.classifyOrPredict(test)
-    predictionAccuracy(results, test, 'ACO')
-    print(results[:])
-    print('')
-
-    # for regular 
-    # train = DataSet.DataSet('satTrain.csv')
-    # test = DataSet.DataSet('satTest.csv')
     # tree = DecisionsTree.DecisionsTree(train)
-    # tree.buildTree()
-    # temp = tree.classify(test)
-    # predictionAccuracy(temp, test, 'Regular')
-    # print(temp[:])
+    # ant_colony = ACO.ACO(tree, train, test, 1, 1)
+    # tree = ant_colony.run()
+
+    # with open('ACOTREE.pickle', 'wb') as handleTREE:
+    #     pickle.dump(tree, handleTREE, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # with open('ACOTEST.pickle', 'wb') as handleTEST:
+    #     pickle.dump(test, handleTEST, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    # # with open('ACOTREE.pickle', 'rb') as handleTREE:
+    # #     tree = pickle.load(handleTREE)
+
+    # # with open('ACOTEST.pickle', 'rb') as handleTEST:
+    # #     test = pickle.load(handleTEST)
+
+    # results = tree.classifyOrPredict(test)
+    # predictionAccuracy(results, test, 'ACO')
+    # print(results[:])
     # print('')
 
+    # # for regular 
+    train = DataSet.DataSet('satTrain.csv')
+    # train, test = train.splitIntoTrainingTest()
+    # train, test =test.splitIntoTrainingTest()
+    # train, test =test.splitIntoTrainingTest()
+    # train, test =test.splitIntoTrainingTest()
+    # train, test =test.splitIntoTrainingTest()
+    test = DataSet.DataSet('satTest.csv')
+    tree = DecisionsTree.DecisionsTree(train)
+    tree.buildTree()
+    temp = tree.classify(test)
+    predictionAccuracy(temp, test, 'Regular')
+    print(temp[:])
+    print('')
+
     # # for random forest (send only training data)
-    # rf = RandomForest.RandomForest('satTrain.csv', 20)
+    # train = DataSet.DataSet('optdigitstrain.csv')
+    # test = DataSet.DataSet('optdigitstest.csv')
+    # rf = RandomForest.RandomForest(train, 20)
     # rf.buildTrees()
     # temp = rf.classify(test)
     # predictionAccuracy(temp, test, 'random forest')

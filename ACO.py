@@ -2,6 +2,7 @@ import numpy as np
 from Node import Node
 import DecisionsTree
 from multiprocessing import Process, Queue, Manager
+import os
 
 
 class ACO:
@@ -162,7 +163,7 @@ class ACO:
             for threshold in range(len(scores[feature])):
                 temp_pheromones[feature][threshold] = (thresholds[feature][threshold][1] ** self.alpha) *\
                                                       (scores[feature][threshold] ** self.beta)
-
+        np.random.seed(os.getpid())
         linear_idx = np.random.choice(temp_pheromones.size, p=temp_pheromones.ravel() / float(temp_pheromones.sum()))
 
         feature_idx, threshold_idx = np.unravel_index(linear_idx, temp_pheromones.shape)

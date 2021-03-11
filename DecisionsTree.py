@@ -77,14 +77,14 @@ def rss(left, right):
 
 
 class DecisionsTree:
-    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=20, alpha=1, min_data_pts=5, min_change=0.001):
+    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=3, alpha=1, min_data_pts=5, min_change=0.001):
         self.root = Node(data_set, 0)
         self.scoring_func = scoring_func
         self.max_depth = max_depth  # max depth to keep splitting until
         self.alpha = alpha  # min best score to split on
         self.min_data_points = min_data_pts  # min data points a node can contain
         self.min_change = min_change  # todo figure out or leave out
-        self.max = True if self.scoring_func == informationGain else False
+        self.max = True if self.scoring_func == giniImpurity or self.scoring_func == informationGain else False
 
     def __buildTree(self, node):
         if node.depth >= self.max_depth:
@@ -98,6 +98,8 @@ class DecisionsTree:
             self.__buildTree(node.rightNode)
 
     def buildTree(self):
+        if self.scoring_func == score_by_gini:
+            self.root.score == giniImpurity(self.root.data_set)
         if self.scoring_func == informationGain:
             self.root.score = entropy(self.root.data_set)
         else:
@@ -146,7 +148,7 @@ class DecisionsTree:
                 if left is None or right is None:
                     continue
                 score, left_score, right_score = self.scoring_func(left, right)
-                if self.scoring_func == informationGain:
+                if self.scoring_func == informationGain or self.scoring_func == giniImpurity:
                     score = node.score - score
                 if left.data.shape[0] < self.min_data_points or right.data.shape[0] < self.min_data_points:
                     score = -math.inf if self.max else math.inf   # don't want it to be selected
