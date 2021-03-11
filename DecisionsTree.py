@@ -77,7 +77,7 @@ def rss(left, right):
 
 
 class DecisionsTree:
-    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=3, alpha=1, min_data_pts=5, min_change=0.001):
+    def __init__(self, data_set, scoring_func=score_by_gini, max_depth=20, alpha=1, min_data_pts=5, min_change=0.001):
         self.root = Node(data_set, 0)
         self.scoring_func = scoring_func
         self.max_depth = max_depth  # max depth to keep splitting until
@@ -99,7 +99,7 @@ class DecisionsTree:
 
     def buildTree(self):
         if self.scoring_func == score_by_gini:
-            self.root.score == giniImpurity(self.root.data_set)
+            self.root.score = giniImpurity(self.root.data_set)
         if self.scoring_func == informationGain:
             self.root.score = entropy(self.root.data_set)
         else:
@@ -148,7 +148,7 @@ class DecisionsTree:
                 if left is None or right is None:
                     continue
                 score, left_score, right_score = self.scoring_func(left, right)
-                if self.scoring_func == informationGain or self.scoring_func == giniImpurity:
+                if self.scoring_func == giniImpurity or self.scoring_func == informationGain:
                     score = node.score - score
                 if left.data.shape[0] < self.min_data_points or right.data.shape[0] < self.min_data_points:
                     score = -math.inf if self.max else math.inf   # don't want it to be selected
@@ -233,7 +233,6 @@ class DecisionsTree:
             if classifications[row] == dataset.data[row][last_column]:
                 num_matched += 1
         percent_correct = 100*(num_matched/numRows)
-        print(percent_correct)
         q.append((tree, classifications, percent_correct))
 
     def classifyOrPredict(self, dataset):
