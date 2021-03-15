@@ -16,22 +16,21 @@ def predictionAccuracy(predArray, testing_data_set, typeOfRun):
 
 def main():
     # set train and test data
-
-    ds = DataSet.DataSet('wine_data.csv')
+    ds = DataSet.DataSet('iris.csv')
     train, test = ds.splitIntoTrainingTest()
-#    train = DataSet.DataSet('satTrain.csv')
-#    test = DataSet.DataSet('satTest.csv')
+    # train = DataSet.DataSet('optdigitstrain.csv')
+    # test = DataSet.DataSet('optdigitstest.csv')
     
     # for aco
-#    tree = DecisionsTree.DecisionsTree(train)
-#    ant_colony = ACO.ACO(tree, train, test,  1,   1)
-#    tree = ant_colony.run()
+    # tree = DecisionsTree.DecisionsTree(train)
+    # ant_colony = ACO.ACO(tree, train, test,  10,   10)
+    # tree = ant_colony.run()
 
-#    with open('ACOTREE.pickle', 'wb') as handleTREE:
-#        pickle.dump(tree, handleTREE, protocol=pickle.HIGHEST_PROTOCOL)
-#
-#    with open('ACOTEST.pickle', 'wb') as handleTEST:
-#        pickle.dump(test, handleTEST, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open('ACOTREE.pickle', 'wb') as handleTREE:
+    #    pickle.dump(tree, handleTREE, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # with open('ACOTEST.pickle', 'wb') as handleTEST:
+    #    pickle.dump(test, handleTEST, protocol=pickle.HIGHEST_PROTOCOL)
     
     # with open('ACOTREE.pickle', 'rb') as handleTREE:
     #     tree = pickle.load(handleTREE)
@@ -45,13 +44,14 @@ def main():
     #print('')
 
     # for regular 
-    #train = DataSet.DataSet('satTrain.csv')
-    #test = DataSet.DataSet('satTest.csv')
+    # train = DataSet.DataSet('optdigitstrain.csv')
+    # test = DataSet.DataSet('optdigitstest.csv')
     tree = DecisionsTree.DecisionsTree(train)
     tree.buildTree()
     temp = tree.classify(test)
     predictionAccuracy(temp, test, 'Regular')
     print(temp[:])
+    print(test.data[:,len(test.data[0]) -1])
     print('')
 
     # # for random forest (send only training data)

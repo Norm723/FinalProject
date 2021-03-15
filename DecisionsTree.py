@@ -100,7 +100,7 @@ class DecisionsTree:
     def buildTree(self):
         if self.scoring_func == score_by_gini:
             self.root.score = giniImpurity(self.root.data_set)
-        if self.scoring_func == informationGain:
+        elif self.scoring_func == informationGain:
             self.root.score = entropy(self.root.data_set)
         else:
             self.root.score = math.inf
@@ -131,7 +131,7 @@ class DecisionsTree:
     # returns the score for every possible split on each feature and threshold, and the left and right datasets of
     # the best split
     def get_all_scores(self, node):
-        num_features = node.data_set.data.shape[1]
+        num_features = node.data_set.data.shape[1] - 1
         best_score = self.alpha
         temp_scores = list()
         temp_left = None
