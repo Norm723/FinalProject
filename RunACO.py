@@ -16,15 +16,20 @@ def predictionAccuracy(predArray, testing_data_set, typeOfRun):
 
 def main():
     # set train and test data
-    ds = DataSet.DataSet('iris.csv')
-    train, test = ds.splitIntoTrainingTest()
-    # train = DataSet.DataSet('optdigitstrain.csv')
-    # test = DataSet.DataSet('optdigitstest.csv')
+    # ds = DataSet.DataSet('data_sets\wine_data.csv')
+    # train, test = ds.splitIntoTrainingTest()
+    train = DataSet.DataSet('data_sets\satTrain.csv')
+    test = DataSet.DataSet('data_sets\satTest.csv')
     
     # for aco
     # tree = DecisionsTree.DecisionsTree(train)
     # ant_colony = ACO.ACO(tree, train, test,  10,   10)
     # tree = ant_colony.run()
+
+    # results = tree.classifyOrPredict(test)
+    # predictionAccuracy(results, test, 'ACO')
+    # print(results[:])
+    # print('')
 
     # with open('ACOTREE.pickle', 'wb') as handleTREE:
     #    pickle.dump(tree, handleTREE, protocol=pickle.HIGHEST_PROTOCOL)
@@ -38,11 +43,6 @@ def main():
     # with open('ACOTEST.pickle', 'rb') as handleTEST:
     #     test = pickle.load(handleTEST)
 
-    #results = tree.classifyOrPredict(test)
-    #predictionAccuracy(results, test, 'ACO')
-    #print(results[:])
-    #print('')
-
     # for regular 
     # train = DataSet.DataSet('optdigitstrain.csv')
     # test = DataSet.DataSet('optdigitstest.csv')
@@ -51,7 +51,7 @@ def main():
     temp = tree.classify(test)
     predictionAccuracy(temp, test, 'Regular')
     print(temp[:])
-    print(test.data[:,len(test.data[0]) -1])
+    # print(test.data[:,len(test.data[0]) -1])
     print('')
 
     # # for random forest (send only training data)
